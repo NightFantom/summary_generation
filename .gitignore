@@ -1,2 +1,4 @@
-data
+data/BBC News Summary
+data/tf_records
+data/yaml_format
 .idea
