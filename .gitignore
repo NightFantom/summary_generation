@@ -1,4 +1,4 @@
 data/BBC News Summary
 data/tf_records
-data/yaml_format
+data/yaml_format/article_summary_dataset.yml
 .idea
