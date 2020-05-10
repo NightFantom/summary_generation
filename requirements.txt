@@ -8,3 +8,4 @@ tqdm==4.45.0
 py-rouge==1.1
 pandas==1.0.3
 xlwt==1.3.0
+encoder_lib==1.0

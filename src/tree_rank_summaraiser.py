@@ -1,18 +1,18 @@
 import logging
 from typing import List, Any, Dict
 
-from bert_experimental.feature_extraction.bert_feature_extractor import BERTFeatureExtractor
 from nltk.tokenize import sent_tokenize
 from sklearn.metrics.pairwise import cosine_similarity
 import networkx as nx
 import numpy as np
 import re
 import global_const
+from encoders.base_encoder import BaseEncoder
 
 
 class TreeRankSummariser:
 
-    def __init__(self, max_sentence: int, encoder: BERTFeatureExtractor):
+    def __init__(self, max_sentence: int, encoder: BaseEncoder):
         self.encoder = encoder
         self.max_sentence_int = max_sentence
         self.__empty_list = []
@@ -28,7 +28,7 @@ class TreeRankSummariser:
     def get_summary_for_companies(self, text: str, companies: List[Dict[str, Any]]) -> Dict[str, str]:
         sentence_list = sent_tokenize(text)
         self.__logger.debug(f"Extracted {len(sentence_list)} sentences")
-        vectors_np: np.array = self.encoder(sentence_list)
+        vectors_np: np.array = self.encoder.encode(sentence_list)
         isin_summary: Dict[str, str] = {}
         for company_dict in companies:
             isin_str = company_dict[global_const.COMPANY_ISIN]
@@ -79,5 +79,5 @@ class TreeRankSummariser:
         return list(sentence_np[best_scores_np])
 
     def get_summary_by_sentence(self, sentence_list: List[str], personalized: Dict[int, float]) -> List[str]:
-        vectors_np = self.encoder(sentence_list)
+        vectors_np = self.encoder.encode(sentence_list)
         return self.__run_tree_rank(sentence_list, vectors_np, personalized)
