@@ -28,6 +28,7 @@ class TreeRankSummariser:
     def get_summary_for_companies(self, text: str, companies: List[Dict[str, Any]]) -> Dict[str, str]:
         sentence_list = sent_tokenize(text)
         self.__logger.debug(f"Extracted {len(sentence_list)} sentences")
+        vectors_np: np.array = self.encoder(sentence_list)
         isin_summary: Dict[str, str] = {}
         for company_dict in companies:
             isin_str = company_dict[global_const.COMPANY_ISIN]
@@ -51,13 +52,12 @@ class TreeRankSummariser:
                     point = 0.2
                 personalization[index] = point
 
-            summary = self.get_summary_by_sentence(sentence_list, personalization)
+            summary = self.__run_tree_rank(sentence_list, vectors_np, personalization)
             summary_str = "★".join(summary)
             isin_summary[isin_str] = summary_str
         return isin_summary
 
-    def get_summary_by_sentence(self, sentence_list: List[str], personalized) -> List[str]:
-        vectors_np = self.encoder(sentence_list)
+    def __run_tree_rank(self, sentences: List[str], vectors_np: np.array, personalized: Dict[int, float]) -> List[str]:
         similarity_matrix = cosine_similarity(vectors_np, vectors_np)
         for pos in range(similarity_matrix.shape[0]):
             similarity_matrix[pos][pos] = 0
@@ -67,7 +67,7 @@ class TreeRankSummariser:
         sentence_np = []
         score_np = []
         for sentence_index, score in pagerank_weights.items():
-            sentence_np.append(sentence_list[sentence_index])
+            sentence_np.append(sentences[sentence_index])
             score_np.append(score)
 
         sentence_np = np.array(sentence_np)
@@ -78,3 +78,6 @@ class TreeRankSummariser:
         best_scores_np.sort()
         return list(sentence_np[best_scores_np])
 
+    def get_summary_by_sentence(self, sentence_list: List[str], personalized: Dict[int, float]) -> List[str]:
+        vectors_np = self.encoder(sentence_list)
+        return self.__run_tree_rank(sentence_list, vectors_np, personalized)
